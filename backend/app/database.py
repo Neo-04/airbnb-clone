@@ -30,7 +30,7 @@ def get_db():
         db.close()
 
 
-# Create tables for any models registered on Base. Models are added in later phases.
+# Create tables for any models registered on Base.
 def init_db() -> None:
     from app import models  # noqa: F401  (imported so models register before create_all)
 

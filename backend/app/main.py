@@ -7,12 +7,14 @@ from app.config import settings
 from app.database import init_db
 from app.exceptions import register_exception_handlers
 from app.routers import health
+from app.seed import seed_database
 
 
-# Run startup/shutdown logic. Tables are created on startup.
+# Create tables and seed sample data on startup.
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
+    seed_database()
     yield
 
 
