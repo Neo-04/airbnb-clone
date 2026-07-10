@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.database import init_db
 from app.exceptions import register_exception_handlers
-from app.routers import health
+from app.routers import health, listings
 from app.seed import seed_database
 
 
@@ -36,3 +36,4 @@ app.add_middleware(
 register_exception_handlers(app)
 
 app.include_router(health.router)
+app.include_router(listings.router)
