@@ -1,4 +1,4 @@
-# Airbnb Clone
+# StayFinder
 
 A full-stack Airbnb-style web application that supports property browsing, search and filtering, booking, wishlists, trip management, and host listing management.
 
