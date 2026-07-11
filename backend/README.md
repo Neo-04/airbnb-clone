@@ -48,6 +48,47 @@ Run all commands from the `backend/` directory.
 | `DATABASE_URL` | `sqlite:///./airbnb.db` | SQLAlchemy database URL.             |
 | `FRONTEND_URL` | `http://localhost:3000` | Allowed CORS origin(s), comma-list.  |
 
+## Render deployment
+
+Use these settings for a Render Web Service:
+
+| Setting       | Value                                      |
+| ------------- | ------------------------------------------ |
+| Root Directory | `backend`                                |
+| Build Command | `pip install -r requirements.txt`         |
+| Start Command | `uvicorn app.main:app --host 0.0.0.0 --port $PORT` |
+| Health Check Path | `/health`                            |
+
+Recommended production environment variables:
+
+```env
+APP_NAME=Airbnb Clone API
+APP_ENV=production
+DEBUG=false
+API_PREFIX=/api
+DATABASE_URL=sqlite:///./airbnb.db
+FRONTEND_URL=<deployed Vercel URL>
+```
+
+For the first backend deploy, `FRONTEND_URL=http://localhost:3000` is acceptable
+until the Vercel URL exists. After deploying the frontend, replace it with the
+Vercel URL and restart or redeploy the Render service.
+
+### SQLite persistence on Render
+
+SQLite is supported through `DATABASE_URL`.
+
+Free Render services can use `sqlite:///./airbnb.db`, but runtime-created
+bookings, favourites, and listing changes may disappear after restart or
+redeployment.
+
+For reliable SQLite persistence, use a paid Render service with a persistent disk
+mounted at `/var/data` and set:
+
+```env
+DATABASE_URL=sqlite:////var/data/airbnb.db
+```
+
 ## Import convention
 
 Run from `backend/`; all imports are absolute from the `app` package
