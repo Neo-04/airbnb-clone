@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import date
 from math import ceil
 
-from sqlalchemy import and_, func, or_, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session, joinedload, selectinload
 
 from app.enums import BookingStatus
@@ -19,6 +19,7 @@ from app.schemas.listing import (
     ListingListResponse,
     ReviewOut,
 )
+from app.services.availability import booking_overlap_condition
 
 
 # Money is stored in paise; the API speaks whole rupees.
@@ -79,12 +80,7 @@ def _build_conditions(
 
     # Exclude listings with a confirmed booking overlapping the requested dates.
     if check_in and check_out:
-        overlap = and_(
-            Booking.status == BookingStatus.confirmed,
-            Booking.check_in < check_out,
-            Booking.check_out > check_in,
-        )
-        conditions.append(~Listing.bookings.any(overlap))
+        conditions.append(~Listing.bookings.any(booking_overlap_condition(check_in, check_out)))
 
     return conditions
 
@@ -120,6 +116,20 @@ def _to_card(listing: Listing, review_count: int) -> ListingCard:
         cover_image=cover,
         amenities=[a.name for a in listing.amenities],
     )
+
+
+# Build listing cards for a set of listings, attaching review counts in one query.
+def build_listing_cards(db: Session, listings: list[Listing]) -> list[ListingCard]:
+    if not listings:
+        return []
+    ids = [listing.id for listing in listings]
+    rows = db.execute(
+        select(Review.listing_id, func.count(Review.id))
+        .where(Review.listing_id.in_(ids))
+        .group_by(Review.listing_id)
+    ).all()
+    counts = {listing_id: count for listing_id, count in rows}
+    return [_to_card(listing, counts.get(listing.id, 0)) for listing in listings]
 
 
 # Search listings with optional filters and return a paginated response.
@@ -166,18 +176,7 @@ def search_listings(
     )
     listings = db.scalars(query).all()
 
-    # Fetch review counts for just this page instead of loading review bodies.
-    counts: dict[int, int] = {}
-    if listings:
-        ids = [listing.id for listing in listings]
-        rows = db.execute(
-            select(Review.listing_id, func.count(Review.id))
-            .where(Review.listing_id.in_(ids))
-            .group_by(Review.listing_id)
-        ).all()
-        counts = {listing_id: count for listing_id, count in rows}
-
-    items = [_to_card(listing, counts.get(listing.id, 0)) for listing in listings]
+    items = build_listing_cards(db, listings)
     total_pages = ceil(total / page_size) if total else 0
     return ListingListResponse(
         items=items, page=page, page_size=page_size, total=total, total_pages=total_pages

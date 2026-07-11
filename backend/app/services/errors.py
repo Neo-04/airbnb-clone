@@ -1,0 +1,6 @@
+# Raised by services to signal an expected error with an HTTP status and message.
+class ServiceError(Exception):
+    def __init__(self, status_code: int, detail: str):
+        self.status_code = status_code
+        self.detail = detail
+        super().__init__(detail)
