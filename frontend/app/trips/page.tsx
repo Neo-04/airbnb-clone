@@ -37,7 +37,7 @@ function TripCard({ trip }: { trip: BookingListItem }) {
 }
 
 export default function TripsPage() {
-  const { ready, userId } = useUser();
+  const { ready, isAuthenticated } = useUser();
   const [items, setItems] = useState<BookingListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -56,7 +56,7 @@ export default function TripsPage() {
     return () => {
       active = false;
     };
-  }, [ready, userId]);
+  }, [ready, isAuthenticated]);
 
   if (loading) return <Loading label="Loading your trips..." />;
   if (error) return <ErrorState message={error} />;

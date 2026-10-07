@@ -1,52 +1,94 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { DEFAULT_USER_ID, MOCK_USERS, type MockUser } from "@/lib/constants";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
+import { api } from "@/lib/api";
+import type { AuthUser, Role } from "@/types";
 
-const USER_KEY = "currentUserId";
+const TOKEN_KEY = "authToken";
 
 interface UserContextValue {
-  user: MockUser;
-  userId: number;
-  users: MockUser[];
+  user: AuthUser | null;
+  token: string | null;
+  isAuthenticated: boolean;
   isHost: boolean;
   ready: boolean;
-  setUserId: (id: number) => void;
+  login: (email: string, password: string) => Promise<void>;
+  signup: (
+    name: string,
+    email: string,
+    password: string,
+    role: Role
+  ) => Promise<void>;
+  logout: () => void;
 }
 
 const UserContext = createContext<UserContextValue | null>(null);
 
-function resolveUser(id: number): MockUser {
-  return MOCK_USERS.find((u) => u.id === id) ?? MOCK_USERS[0];
-}
-
 export function UserProvider({ children }: { children: ReactNode }) {
-  const [userId, setId] = useState<number>(DEFAULT_USER_ID);
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [token, setToken] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
 
-  // Restore the selected user after a page refresh.
+  // Restore session from localStorage on mount.
   useEffect(() => {
-    const saved = localStorage.getItem(USER_KEY);
-    const parsed = saved ? Number(saved) : DEFAULT_USER_ID;
-    const valid = MOCK_USERS.some((u) => u.id === parsed) ? parsed : DEFAULT_USER_ID;
-    localStorage.setItem(USER_KEY, String(valid));
-    setId(valid);
-    setReady(true);
+    const saved = localStorage.getItem(TOKEN_KEY);
+    if (!saved) {
+      setReady(true);
+      return;
+    }
+    // Validate the token by calling /auth/me.
+    api
+      .getMe(saved)
+      .then((u) => {
+        setToken(saved);
+        setUser(u);
+      })
+      .catch(() => {
+        // Token is invalid or expired — clear it silently.
+        localStorage.removeItem(TOKEN_KEY);
+      })
+      .finally(() => setReady(true));
   }, []);
 
-  const setUserId = (id: number) => {
-    localStorage.setItem(USER_KEY, String(id));
-    setId(id);
-  };
+  const login = useCallback(async (email: string, password: string) => {
+    const res = await api.login(email, password);
+    localStorage.setItem(TOKEN_KEY, res.access_token);
+    setToken(res.access_token);
+    setUser(res.user);
+  }, []);
 
-  const user = resolveUser(userId);
+  const signup = useCallback(
+    async (name: string, email: string, password: string, role: Role) => {
+      const res = await api.signup(name, email, password, role);
+      localStorage.setItem(TOKEN_KEY, res.access_token);
+      setToken(res.access_token);
+      setUser(res.user);
+    },
+    []
+  );
+
+  const logout = useCallback(() => {
+    localStorage.removeItem(TOKEN_KEY);
+    setToken(null);
+    setUser(null);
+  }, []);
+
   const value: UserContextValue = {
     user,
-    userId,
-    users: MOCK_USERS,
-    isHost: user.role === "host",
+    token,
+    isAuthenticated: user !== null,
+    isHost: user?.role === "host",
     ready,
-    setUserId,
+    login,
+    signup,
+    logout,
   };
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;

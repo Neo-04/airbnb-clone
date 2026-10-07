@@ -1,27 +1,26 @@
-from fastapi import Depends, Header, HTTPException
+from fastapi import Depends, HTTPException
+from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.enums import UserRole
 from app.models import User
+from app.services.auth_service import decode_access_token
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login", auto_error=False)
 
 
-# Mock authentication: resolve the current user from the X-User-Id header.
-# This is a development stand-in, not real auth (no passwords, tokens, or sessions).
+# Resolve the current user from a JWT Bearer token.
 def get_current_user(
-    x_user_id: str | None = Header(default=None, alias="X-User-Id"),
+    token: str | None = Depends(oauth2_scheme),
     db: Session = Depends(get_db),
 ) -> User:
-    if x_user_id is None:
-        raise HTTPException(status_code=401, detail="Missing X-User-Id header")
-    try:
-        user_id = int(x_user_id)
-    except ValueError:
-        raise HTTPException(status_code=401, detail="X-User-Id must be an integer")
-
+    if token is None:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    user_id = decode_access_token(token)
     user = db.get(User, user_id)
     if user is None:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=401, detail="User not found")
     return user
 
 

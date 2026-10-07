@@ -2,6 +2,21 @@
 
 export type Role = "guest" | "host";
 
+// Authentication
+export interface AuthUser {
+  id: number;
+  name: string;
+  email: string;
+  role: Role;
+  avatar_url: string | null;
+}
+
+export interface AuthResponse {
+  access_token: string;
+  token_type: string;
+  user: AuthUser;
+}
+
 export interface ListingCard {
   id: number;
   title: string;

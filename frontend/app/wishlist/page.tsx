@@ -10,7 +10,7 @@ import { ListingCard } from "@/components/ListingCard";
 import { Loading, ErrorState, EmptyState } from "@/components/States";
 
 export default function WishlistPage() {
-  const { ready, userId } = useUser();
+  const { ready, isAuthenticated } = useUser();
   const { isFavorite } = useFavorites();
   const [listings, setListings] = useState<ListingCardType[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,7 +30,7 @@ export default function WishlistPage() {
     return () => {
       active = false;
     };
-  }, [ready, userId]);
+  }, [ready, isAuthenticated]);
 
   if (loading) return <Loading label="Loading your wishlist..." />;
   if (error) return <ErrorState message={error} />;

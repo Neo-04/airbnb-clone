@@ -1,22 +1,3 @@
-import type { Role } from "@/types";
-
-export interface MockUser {
-  id: number;
-  name: string;
-  role: Role;
-}
-
-// Seeded backend users used by the development user switcher.
-export const MOCK_USERS: MockUser[] = [
-  { id: 4, name: "Aditya Balaji", role: "guest" },
-  { id: 5, name: "Rohan Verma", role: "guest" },
-  { id: 1, name: "Priya Sharma", role: "host" },
-  { id: 2, name: "Rahul Mehta", role: "host" },
-  { id: 3, name: "Neha Kapoor", role: "host" },
-];
-
-export const DEFAULT_USER_ID = 4;
-
 // Mirrors the backend's allowed property types.
 export const PROPERTY_TYPES = [
   "Apartment",
@@ -27,7 +8,7 @@ export const PROPERTY_TYPES = [
   "Farm Stay",
 ];
 
-// Mirrors the seeded amenity names accepted by the backend.
+// Mirrors the standard amenity names accepted by the backend.
 export const AMENITIES = [
   "Wi-Fi",
   "Air conditioning",

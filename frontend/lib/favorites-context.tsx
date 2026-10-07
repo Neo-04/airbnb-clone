@@ -17,11 +17,11 @@ interface FavoritesContextValue {
 const FavoritesContext = createContext<FavoritesContextValue | null>(null);
 
 export function FavoritesProvider({ children }: { children: ReactNode }) {
-  const { userId, ready } = useUser();
+  const { isAuthenticated, ready } = useUser();
   const [favoriteIds, setFavoriteIds] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(false);
 
-  // Load the current user's favourites; refetched whenever the user switches.
+  // Load the current user's favourites; refetched whenever auth state changes.
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
@@ -35,8 +35,13 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (ready) refresh();
-  }, [ready, userId, refresh]);
+    if (!ready) return;
+    if (isAuthenticated) {
+      refresh();
+    } else {
+      setFavoriteIds(new Set());
+    }
+  }, [ready, isAuthenticated, refresh]);
 
   // Add or remove a favourite and keep local state in sync.
   const toggle = useCallback(

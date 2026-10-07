@@ -13,7 +13,7 @@ import { StatusBadge } from "@/components/Badges";
 import { Loading, ErrorState } from "@/components/States";
 
 function Dashboard() {
-  const { ready, userId } = useUser();
+  const { ready, isAuthenticated } = useUser();
   const [stats, setStats] = useState<HostStats | null>(null);
   const [listings, setListings] = useState<HostListing[]>([]);
   const [bookings, setBookings] = useState<HostBookingItem[]>([]);
@@ -40,7 +40,7 @@ function Dashboard() {
 
   useEffect(() => {
     if (ready) load();
-  }, [ready, userId, load]);
+  }, [ready, isAuthenticated, load]);
 
   // Delete an owned listing, then refresh the dashboard.
   const confirmDelete = async () => {

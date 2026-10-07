@@ -1,4 +1,6 @@
 import type {
+  AuthResponse,
+  AuthUser,
   AvailabilityResponse,
   BookingDetail,
   BookingQuoteRequest,
@@ -12,10 +14,11 @@ import type {
   ListingListResponse,
   ListingWrite,
   MyTripsResponse,
+  Role,
 } from "@/types";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
-const USER_KEY = "currentUserId";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const TOKEN_KEY = "authToken";
 
 export class ApiError extends Error {
   status: number;
@@ -25,10 +28,10 @@ export class ApiError extends Error {
   }
 }
 
-// Read the mock user id saved by the user context (browser only).
-function storedUserId(): string | null {
+// Read the JWT token saved by the user context (browser only).
+function storedToken(): string | null {
   if (typeof window === "undefined") return null;
-  return localStorage.getItem(USER_KEY);
+  return localStorage.getItem(TOKEN_KEY);
 }
 
 // Turn a FastAPI error body into a readable message.
@@ -51,6 +54,8 @@ function parseError(status: number, data: unknown): ApiError {
 interface RequestOptions {
   auth?: boolean;
   body?: unknown;
+  /** Override the token (used by getMe before context is ready). */
+  token?: string;
 }
 
 // Single fetch wrapper used by every typed endpoint below.
@@ -58,10 +63,10 @@ async function request<T>(method: string, path: string, opts: RequestOptions = {
   const headers: Record<string, string> = {};
   if (opts.body !== undefined) headers["Content-Type"] = "application/json";
 
-  // Attach the mock user only on protected routes.
+  // Attach the Bearer token on protected routes.
   if (opts.auth) {
-    const uid = storedUserId();
-    if (uid) headers["X-User-Id"] = uid;
+    const t = opts.token ?? storedToken();
+    if (t) headers["Authorization"] = `Bearer ${t}`;
   }
 
   const res = await fetch(`${BASE_URL}${path}`, {
@@ -92,6 +97,18 @@ export function buildQuery(params: Record<string, string | number | undefined | 
 }
 
 export const api = {
+  // Auth
+  signup: (name: string, email: string, password: string, role: Role) =>
+    request<AuthResponse>("POST", "/api/auth/signup", {
+      body: { name, email, password, role },
+    }),
+  login: (email: string, password: string) =>
+    request<AuthResponse>("POST", "/api/auth/login", {
+      body: { email, password },
+    }),
+  getMe: (token?: string) =>
+    request<AuthUser>("GET", "/api/auth/me", { auth: true, token }),
+
   // Listings
   searchListings: (query: string) =>
     request<ListingListResponse>("GET", `/api/listings${query}`),

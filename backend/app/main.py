@@ -2,19 +2,56 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import select
 
 from app.config import settings
-from app.database import init_db
+from app.database import SessionLocal, init_db
 from app.exceptions import register_exception_handlers
-from app.routers import bookings, favourites, health, host, listings
-from app.seed import seed_database
+from app.models import Amenity
+from app.routers import auth, bookings, favourites, health, host, listings
+
+# Standard amenities available for listings. Inserted once on first startup.
+STANDARD_AMENITIES = [
+    "Wi-Fi",
+    "Air conditioning",
+    "Kitchen",
+    "Free parking",
+    "Swimming pool",
+    "Washing machine",
+    "TV",
+    "Workspace",
+    "Balcony",
+    "Mountain view",
+    "Sea view",
+    "Breakfast",
+    "Heating",
+    "Pet friendly",
+    "Garden",
+]
 
 
-# Create tables and seed sample data on startup.
+def _init_amenities() -> None:
+    """Populate the amenities table with standard options if empty."""
+    db = SessionLocal()
+    try:
+        existing = db.scalar(select(Amenity.id).limit(1))
+        if existing is not None:
+            return
+        for name in STANDARD_AMENITIES:
+            db.add(Amenity(name=name))
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
+
+
+# Create tables and initialize system data on startup.
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
-    seed_database()
+    _init_amenities()
     yield
 
 
@@ -36,6 +73,7 @@ app.add_middleware(
 register_exception_handlers(app)
 
 app.include_router(health.router)
+app.include_router(auth.router)
 app.include_router(listings.router)
 app.include_router(bookings.router)
 app.include_router(host.router)
