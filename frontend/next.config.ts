@@ -6,7 +6,6 @@ const appDir = dirname(fileURLToPath(import.meta.url));
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  eslint: { ignoreDuringBuilds: true },
   outputFileTracingRoot: appDir,
 };
 
