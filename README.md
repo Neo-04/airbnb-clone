@@ -5,8 +5,6 @@ A full-stack Airbnb-style web application that supports property browsing, searc
 ## Deployed Links
 
 - **Live Application:** https://airbnb-clone-liart-gamma.vercel.app
-- **Backend API:** https://airbnb-clone-backend-aned.onrender.com
-- **API Documentation:** https://airbnb-clone-backend-aned.onrender.com/docs
 
 ## Tech Stack
 
