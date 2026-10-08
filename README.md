@@ -1,20 +1,20 @@
 # StayFinder
 
-A full-stack Airbnb-style web application that supports property browsing, search and filtering, booking, wishlists, trip management, and host listing management.
+A full-stack Airbnb-style vacation rental application that supports user authentication, property browsing, search and filtering, real-time availability checks, booking creation, wishlists, trip management, and host listing management.
 
-## Deployed Links
+## Live Application
 
-- **Live Application:** https://airbnb-clone-liart-gamma.vercel.app
+- **Website:** https://airbnb-clone-liart-gamma.vercel.app
 
 ## Tech Stack
 
 ### Frontend
 
-- Next.js
+- Next.js (App Router)
 - React
 - TypeScript
-- App Router
 - CSS
+- React Hot Toast
 - Vercel
 
 ### Backend
@@ -27,77 +27,11 @@ A full-stack Airbnb-style web application that supports property browsing, searc
 - Uvicorn
 - Render
 
-## Project Architecture
-
-```text
-Browser
-   |
-   v
-Next.js Frontend
-   |
-   | HTTP / JSON
-   | X-User-Id for mock user identification
-   v
-FastAPI Backend
-   |
-   v
-SQLAlchemy ORM
-   |
-   v
-SQLite Database
-```
-
-The frontend handles routing, user interaction, search and filter state, booking flow, user switching, forms, and communication with the backend.
-
-The backend handles request validation, listing search, availability checks, price calculation, booking persistence, host operations, favourites, and database access.
-
-## Project Directory
-
-```text
-airbnb-clone/
-├── frontend/
-│   ├── app/
-│   ├── components/
-│   ├── contexts/
-│   ├── lib/
-│   ├── public/
-│   ├── types/
-│   ├── package.json
-│   ├── package-lock.json
-│   ├── tsconfig.json
-│   └── next.config.ts
-│
-├── backend/
-│   ├── app/
-│   │   ├── models/
-│   │   ├── routers/
-│   │   ├── schemas/
-│   │   ├── services/
-│   │   ├── config.py
-│   │   ├── database.py
-│   │   ├── dependencies.py
-│   │   ├── enums.py
-│   │   ├── main.py
-│   │   └── seed.py
-│   ├── requirements.txt
-│   └── README.md
-│
-├── .gitignore
-└── README.md
-```
-
 ## Run Locally
 
-### 1. Clone the repository
+### 1. Backend
 
-```powershell
-git clone https://github.com/Neo-04/airbnb-clone.git
-cd airbnb-clone
-```
-
-### 2. Start the backend
-
-Open the first terminal:
+Open a terminal:
 
 ```powershell
 cd backend
@@ -107,21 +41,15 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
 
-The backend will be available at:
+The backend server will run at `http://127.0.0.1:8000`.
 
-- API: http://127.0.0.1:8000
-- Swagger Documentation: http://127.0.0.1:8000/docs
-- Health Check: http://127.0.0.1:8000/health
+### 2. Frontend
 
-### 3. Configure the frontend
-
-Create a file named `frontend/.env.local` and add:
+Create a file named `frontend/.env.local`:
 
 ```env
 NEXT_PUBLIC_API_URL=http://127.0.0.1:8000
 ```
-
-### 4. Start the frontend
 
 Open a second terminal:
 
@@ -131,30 +59,4 @@ npm install
 npm run dev
 ```
 
-The frontend will be available at:
-
-```text
-http://localhost:3000
-```
-
-Both the frontend and backend must be running during local development.
-
-## Deployment
-
-The Next.js frontend is deployed on Vercel:
-
-```text
-https://airbnb-clone-liart-gamma.vercel.app
-```
-
-The FastAPI backend is deployed on Render:
-
-```text
-https://airbnb-clone-backend-aned.onrender.com
-```
-
-The deployed API documentation is available at:
-
-```text
-https://airbnb-clone-backend-aned.onrender.com/docs
-```
+The application will run at `http://localhost:3000`.
